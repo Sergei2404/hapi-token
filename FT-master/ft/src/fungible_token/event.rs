@@ -1,6 +1,4 @@
 use near_sdk::{env, serde::Serialize, serde_json};
-use near_contract_standards::non_fungible_token::*;
-
 
 #[derive(Serialize, Debug)]
 // #[serde(tag = "standard")]
@@ -15,7 +13,9 @@ impl<'a> NearEvent<'a> {
     fn to_json_string(&self) -> String {
         // Events cannot fail to serialize so fine to panic on error
         #[allow(clippy::redundant_closure)]
-        serde_json::to_string(self).ok().unwrap_or_else(|| env::abort())
+        serde_json::to_string(self)
+            .ok()
+            .unwrap_or_else(|| env::abort())
     }
 
     fn to_json_event_string(&self) -> String {

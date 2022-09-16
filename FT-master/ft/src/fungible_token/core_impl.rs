@@ -1,4 +1,4 @@
-use crate::fungible_token::core::FungibleTokenCore;
+use crate::core_token::FungibleTokenInternal;
 use crate::fungible_token::events::{FtBurn, FtTransfer};
 use crate::fungible_token::receiver::ext_ft_receiver;
 use crate::fungible_token::resolver::{ext_ft_resolver, FungibleTokenResolver};
@@ -6,8 +6,8 @@ use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::LookupMap;
 use near_sdk::json_types::U128;
 use near_sdk::{
-    assert_one_yocto, env, log, require, AccountId, Balance, Gas, IntoStorageKey, PromiseOrValue,
-    PromiseResult, StorageUsage,
+    env, log, require, AccountId, Balance, Gas, IntoStorageKey, PromiseOrValue, PromiseResult,
+    StorageUsage,
 };
 
 const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(5_000_000_000_000);
@@ -41,8 +41,11 @@ impl FungibleToken {
     where
         S: IntoStorageKey,
     {
-        let mut this =
-            Self { accounts: LookupMap::new(prefix), total_supply: 0, account_storage_usage: 0 };
+        let mut this = Self {
+            accounts: LookupMap::new(prefix),
+            total_supply: 0,
+            account_storage_usage: 0,
+        };
         this.measure_account_storage_usage();
         this
     }
@@ -97,7 +100,10 @@ impl FungibleToken {
         amount: Balance,
         memo: Option<String>,
     ) {
-        require!(sender_id != receiver_id, "Sender and receiver should be different");
+        require!(
+            sender_id != receiver_id,
+            "Sender and receiver should be different"
+        );
         require!(amount > 0, "The amount should be a positive number");
         self.internal_withdraw(sender_id, amount);
         self.internal_deposit(receiver_id, amount);
@@ -117,24 +123,30 @@ impl FungibleToken {
     }
 }
 
-impl FungibleTokenCore for FungibleToken {
-    fn ft_transfer(&mut self, receiver_id: AccountId, amount: U128, memo: Option<String>) {
-        assert_one_yocto();
-        let sender_id = env::predecessor_account_id();
+impl FungibleTokenInternal for FungibleToken {
+    fn ft_transfer(
+        &mut self,
+        sender_id: AccountId,
+        receiver_id: AccountId,
+        amount: U128,
+        memo: Option<String>,
+    ) {
         let amount: Balance = amount.into();
         self.internal_transfer(&sender_id, &receiver_id, amount, memo);
     }
 
     fn ft_transfer_call(
         &mut self,
+        sender_id: AccountId,
         receiver_id: AccountId,
         amount: U128,
         memo: Option<String>,
         msg: String,
     ) -> PromiseOrValue<U128> {
-        assert_one_yocto();
-        require!(env::prepaid_gas() > GAS_FOR_FT_TRANSFER_CALL, "More gas is required");
-        let sender_id = env::predecessor_account_id();
+        require!(
+            env::prepaid_gas() > GAS_FOR_FT_TRANSFER_CALL,
+            "More gas is required"
+        );
         let amount: Balance = amount.into();
         self.internal_transfer(&sender_id, &receiver_id, amount, memo);
         let receiver_gas = env::prepaid_gas()
@@ -151,7 +163,6 @@ impl FungibleTokenCore for FungibleToken {
                     .ft_resolve_transfer(sender_id, receiver_id, amount.into()),
             )
             .into()
-
     }
 
     fn ft_total_supply(&self) -> U128 {
@@ -244,6 +255,8 @@ impl FungibleTokenResolver for FungibleToken {
         receiver_id: AccountId,
         amount: U128,
     ) -> U128 {
-        self.internal_ft_resolve_transfer(&sender_id, receiver_id, amount).0.into()
+        self.internal_ft_resolve_transfer(&sender_id, receiver_id, amount)
+            .0
+            .into()
     }
 }

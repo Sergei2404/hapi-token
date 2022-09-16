@@ -18,18 +18,11 @@ NOTES:
 use near_contract_standards::fungible_token::metadata::{
     FungibleTokenMetadata, FungibleTokenMetadataProvider, FT_METADATA_SPEC,
 };
-// use near_contract_standards::fungible_token::receiver::ext_ft_receiver;
-// use near_contract_standards::fungible_token::resolver::FungibleTokenResolver;
-// use near_contract_standards::fungible_token::storage_impl::*;
-// use near_contract_standards::fungible_token::FungibleToken;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::LazyOption;
-use near_sdk::env::predecessor_account_id;
+
 use near_sdk::json_types::U128;
-use near_sdk::{
-    assert_one_yocto, env, ext_contract, log, near_bindgen, require, AccountId, Balance,
-    BorshStorageKey, PanicOnDefault, PromiseOrValue, ONE_YOCTO,
-};
+use near_sdk::{env, log, near_bindgen, AccountId, Balance, PanicOnDefault, BorshStorageKey};
 
 pub mod aml;
 pub use aml::*;
@@ -40,12 +33,11 @@ pub use owner::*;
 pub mod fungible_token;
 pub use fungible_token::*;
 
-// #[derive(BorshStorageKey, BorshSerialize)]
-// pub(crate) enum StorageKey {
-//     Token,
-//     Metadata,
-//     AmlCategory,
-// }
+#[derive(BorshStorageKey, BorshSerialize)]
+pub(crate) enum StorageKey {
+    Token,
+    Metadata,
+}
 
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
@@ -96,9 +88,9 @@ impl Contract {
         assert!(!env::state_exists(), "Already initialized");
         metadata.assert_valid();
         let mut this = Self {
-            token: FungibleToken::new(b'a'),
-            metadata: LazyOption::new(b'b', Some(&metadata)),
-            aml: AML::new(aml_account_id,  "All".to_string(), INITIAL_MAX_RISK_LEVEL),
+            token: FungibleToken::new(StorageKey::Token),
+            metadata: LazyOption::new(StorageKey::Metadata, Some(&metadata)),
+            aml: AML::new(aml_account_id, Category::All, INITIAL_MAX_RISK_LEVEL),
             owner_id: owner_id.clone(),
         };
         this.token.internal_register_account(&owner_id);
@@ -121,7 +113,7 @@ impl Contract {
     }
 }
 
-// near_contract_standards::impl_fungible_token_storage!(Contract, token, on_account_closed);
+near_contract_standards::impl_fungible_token_storage!(Contract, token, on_account_closed);
 
 #[near_bindgen]
 impl FungibleTokenMetadataProvider for Contract {
@@ -138,7 +130,7 @@ impl FungibleTokenMetadataProvider for Contract {
 //     use near_sdk::{testing_env, Balance};
 
 //     use super::*;
-    
+
 //     const TOTAL_SUPPLY: Balance = 1_000_000_000_000_000;
 
 //     fn get_context(predecessor_account_id: AccountId) -> VMContextBuilder {
