@@ -5,13 +5,18 @@ use crate::*;
 use near_sdk::{
     assert_one_yocto,
     env::{current_account_id, predecessor_account_id},
-    ext_contract, near_bindgen, AccountId, PromiseOrValue,
+    ext_contract, near_bindgen, AccountId, Promise, PromiseOrValue,
 };
 
 #[near_bindgen]
 impl FungibleTokenCore for Contract {
     #[payable]
-    fn ft_transfer(&mut self, receiver_id: AccountId, amount: U128, memo: Option<String>) {
+    fn ft_transfer(
+        &mut self,
+        receiver_id: AccountId,
+        amount: U128,
+        memo: Option<String>,
+    ) -> Promise {
         assert_one_yocto();
         let sender: AccountId = predecessor_account_id();
         ext_aml::ext(self.aml.account_id.clone())
@@ -21,7 +26,7 @@ impl FungibleTokenCore for Contract {
                 ext_self::ext(current_account_id())
                     .with_static_gas(CALLBACK_AML_GAS)
                     .cb_ft_transfer(sender, receiver_id, amount, memo),
-            );
+            )
     }
 
     #[payable]
@@ -90,7 +95,7 @@ impl ExtContract for Contract {
         amount: U128,
         memo: Option<String>,
     ) {
-        self.assert_risk(category_risk);
+        self.aml.assert_risk(category_risk);
         self.token.ft_transfer(sender_id, receiver_id, amount, memo)
     }
 
@@ -104,7 +109,7 @@ impl ExtContract for Contract {
         memo: Option<String>,
         msg: String,
     ) -> PromiseOrValue<U128> {
-        self.assert_risk(category_risk);
+        self.aml.assert_risk(category_risk);
         self.token
             .ft_transfer_call(sender_id, receiver_id, amount, memo, msg)
     }
