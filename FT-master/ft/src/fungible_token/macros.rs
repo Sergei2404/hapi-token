@@ -19,7 +19,7 @@ impl FungibleTokenCore for Contract {
     ) -> Promise {
         assert_one_yocto();
         let sender: AccountId = predecessor_account_id();
-        ext_aml::ext(self.aml.account_id.clone())
+        ext_aml::ext(self.aml.get_account())
             .with_static_gas(AML_CHECK_GAS)
             .get_address(sender.clone())
             .then(
@@ -41,7 +41,7 @@ impl FungibleTokenCore for Contract {
 
         let sender: AccountId = predecessor_account_id();
         PromiseOrValue::Promise(
-            ext_aml::ext(self.aml.account_id.clone())
+            ext_aml::ext(self.aml.get_account())
                 .with_static_gas(AML_CHECK_GAS)
                 .get_address(sender.clone())
                 .then(
