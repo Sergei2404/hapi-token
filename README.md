@@ -54,7 +54,7 @@ Risk score (on the scale from 0..10, i.e. max risk).
 ```
 [dependencies]
 ...
-hapi = "0.1.3"
+hapi = "0.1"
 ```
 
 2. Add use hapi in your lib.rs file
