@@ -32,6 +32,9 @@ pub use owner::*;
 pub mod fungible_token;
 pub use fungible_token::*;
 
+pub mod aml;
+pub use aml::*;
+
 #[derive(BorshStorageKey, BorshSerialize)]
 pub(crate) enum StorageKey {
     Token,
@@ -89,7 +92,7 @@ impl Contract {
         let mut this = Self {
             token: FungibleToken::new(StorageKey::Token),
             metadata: LazyOption::new(StorageKey::Metadata, Some(&metadata)),
-            aml: AML::new(aml_account_id, MAX_RISK_LEVEL),
+            aml: AML::new(aml_account_id, MAX_RISK_LEVEL/2),
             owner_id: owner_id.clone(),
         };
         this.token.internal_register_account(&owner_id);
