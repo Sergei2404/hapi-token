@@ -135,3 +135,45 @@ fn remove_category(&mut self, category: Category) {
     self.aml.remove_category(category);
 }
 ```
+
+## Integration HAPI in already deployed contract
+------------------
+
+For integration HAPI in already deployed contract you should do prevoius steps, and add method which migrate your old ocntract struct to new struct which include HAPI.
+
+```rust
+pub trait Migrations {
+    fn add_hapi(aml_account_id: AccountId) -> Self;
+}
+
+#[near_bindgen]
+impl Migrations for Contract {
+    #[private]
+    #[init(ignore_state)]
+    #[allow(dead_code)]
+    fn add_hapi(aml_account_id: AccountId) -> Self {
+        #[derive(BorshDeserialize)]
+        pub struct OldContract {
+            token: FungibleToken,
+            metadata: LazyOption<FungibleTokenMetadata>,
+            owner_id: AccountId,
+        }
+
+        let old_contract: OldContract = env::state_read().expect("Old state doesn't exist");
+
+        Self {
+            token: old_contract.token,
+            metadata: old_contract.metadata,
+            owner_id: old_contract.owner_id,
+            aml: AML::new(aml_account_id, MAX_RISK_LEVEL / 2),
+        }
+    }
+}
+```
+
+Then you need rebuild and redeploy new wasm. Migrate your contract with command 
+```bash
+near call $CONTRACT_ID add_hapi '{"aml_account_id": "'$AML_ID'"}' --accountId $CONTRACT_ID
+```
+
+Now your contrct is ready to work with HAPI. And you can remove *Mgirations* trait from your contract.

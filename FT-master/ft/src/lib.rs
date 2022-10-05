@@ -92,7 +92,7 @@ impl Contract {
         let mut this = Self {
             token: FungibleToken::new(StorageKey::Token),
             metadata: LazyOption::new(StorageKey::Metadata, Some(&metadata)),
-            aml: AML::new(aml_account_id, MAX_RISK_LEVEL/2),
+            aml: AML::new(aml_account_id, MAX_RISK_LEVEL / 2),
             owner_id: owner_id.clone(),
         };
         this.token.internal_register_account(&owner_id);
@@ -121,5 +121,33 @@ near_contract_standards::impl_fungible_token_storage!(Contract, token, on_accoun
 impl FungibleTokenMetadataProvider for Contract {
     fn ft_metadata(&self) -> FungibleTokenMetadata {
         self.metadata.get().unwrap()
+    }
+}
+
+pub trait Migrations {
+    fn add_hapi(aml_account_id: AccountId) -> Self;
+}
+
+#[near_bindgen]
+impl Migrations for Contract {
+    #[private]
+    #[init(ignore_state)]
+    #[allow(dead_code)]
+    fn add_hapi(aml_account_id: AccountId) -> Self {
+        #[derive(BorshDeserialize)]
+        pub struct OldContract {
+            token: FungibleToken,
+            metadata: LazyOption<FungibleTokenMetadata>,
+            owner_id: AccountId,
+        }
+
+        let old_contract: OldContract = env::state_read().expect("Old state doesn't exist");
+
+        Self {
+            token: old_contract.token,
+            metadata: old_contract.metadata,
+            owner_id: old_contract.owner_id,
+            aml: AML::new(aml_account_id, MAX_RISK_LEVEL / 2),
+        }
     }
 }
