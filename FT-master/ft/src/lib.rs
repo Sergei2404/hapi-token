@@ -24,7 +24,7 @@ use near_sdk::collections::LazyOption;
 use near_sdk::json_types::U128;
 use near_sdk::{env, log, near_bindgen, AccountId, Balance, BorshStorageKey, PanicOnDefault};
 
-use hapi::aml::*;
+use hapi_near_connector::aml::*;
 
 pub mod owner;
 pub use owner::*;
