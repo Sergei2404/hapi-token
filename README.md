@@ -65,12 +65,12 @@ proxy.hapiprotocol.near
 ```
 [dependencies]
 ...
-hapi = "0.1"
+hapi-near-connector = "0.1"
 ```
 
 2. Add use hapi in your lib.rs file
 ```
-use hapi::aml::*;
+use hapi_near_connector::aml::*;
 ```
 
 3. Add AML struct to your Contract struct
