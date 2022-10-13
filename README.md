@@ -48,6 +48,17 @@ Hapi protocol supports 18 categories
 If the address belongs to some category, it will have a
 Risk score (on a scale from 0..10, i.e. max risk).
 
+Address of the [contract](https://github.com/HAPIprotocol/near-proxy-contract) on the **testnet**
+
+```
+hapi-test.testnet
+```
+Address of the contract on the **mainnet**
+
+```
+proxy.hapiprotocol.near
+```
+
 ## What to do for using hapi? 
 
 1. Add hapi to dependencies of your project in Cargo.toml
